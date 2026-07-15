@@ -24,8 +24,9 @@ Completed steps:
 3. Database design
 4. Prisma schema
 5. Authentication
+6. Layout
 
-Next step after approval: **6. Layout**
+Next step after approval: **7. UI Components**
 
 ## Folder Architecture
 
@@ -422,6 +423,36 @@ Supabase Auth handles registration, login, logout, email verification, forgot pa
 - The current auth UI is intentionally simple. The full app shell, navigation, and premium responsive layout belong to the Layout and UI Components steps.
 - Middleware protects route access early, while database RLS still needs to be added later through Supabase migrations.
 - Server actions keep auth flows compact, but form validation is currently minimal. Zod validation can be added when form patterns are standardized.
+
+## Layout
+
+The authenticated product area uses a shared app shell around the `(dashboard)` route group.
+
+### Layout Structure
+
+- `src/app/(dashboard)/layout.tsx` verifies the Supabase session and wraps protected pages in the app shell.
+- `src/components/layout/app-shell.tsx` owns the main authenticated page frame.
+- `src/components/layout/app-navigation.tsx` owns desktop sidebar, mobile top bar, and mobile bottom navigation.
+
+### Responsive Behavior
+
+- Desktop and large laptop screens use a persistent left sidebar.
+- Mobile and tablet screens use a sticky top bar with a fixed bottom navigation.
+- Future modules appear as disabled navigation items until their implementation steps are approved.
+- Main content uses a constrained max width with responsive padding and extra bottom padding on mobile so content does not sit under the bottom navigation.
+
+### Design Decisions
+
+- The layout is quiet and dashboard-oriented instead of marketing-like. It prioritizes repeat daily use.
+- The sidebar reserves space for the family account identity and product modules.
+- Mobile navigation surfaces the highest-frequency destinations: dashboard, goals, checklist, calendar, and reports.
+- The dashboard page now sits inside the app shell and only contains placeholder summary panels. Real dashboard widgets remain part of the Dashboard step.
+
+### Trade-offs
+
+- Navigation is visible before all modules exist, but disabled states make the product direction clear without creating unfinished pages.
+- The layout uses local Tailwind styles for now. Reusable button, card, input, dialog, and navigation primitives will be standardized in the UI Components step.
+- A drawer is not implemented yet because the current module list fits the sidebar/mobile-bottom pattern. A drawer can be added when Settings or secondary actions need more room.
 
 ## Getting Started
 
