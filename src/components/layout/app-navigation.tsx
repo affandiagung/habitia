@@ -16,7 +16,7 @@ import {
 
 const primaryNavigation = [
   { label: "Dashboard", href: "/dashboard", icon: Home, enabled: true },
-  { label: "Family", href: "/family", icon: UsersRound, enabled: false },
+  { label: "Family", href: "/family", icon: UsersRound, enabled: true },
   { label: "Goals", href: "/goals", icon: Target, enabled: false },
   { label: "Activities", href: "/activities", icon: ListChecks, enabled: false },
   { label: "Checklist", href: "/checklist", icon: CheckSquare, enabled: false },
@@ -26,7 +26,7 @@ const primaryNavigation = [
 ];
 
 const mobileNavigation = primaryNavigation.filter((item) =>
-  ["Dashboard", "Goals", "Checklist", "Calendar", "Reports"].includes(item.label),
+  ["Dashboard", "Family", "Goals", "Checklist", "Calendar"].includes(item.label),
 );
 
 function NavigationItem({

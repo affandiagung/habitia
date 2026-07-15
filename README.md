@@ -26,8 +26,9 @@ Completed steps:
 5. Authentication
 6. Layout
 7. UI Components
+8. Family module
 
-Next step after approval: **8. Family module**
+Next step after approval: **9. Goals module**
 
 ## Folder Architecture
 
@@ -483,6 +484,56 @@ The first UI component layer is a small shadcn-inspired primitive set in `src/co
 - No Radix-based dialogs, dropdowns, tabs, or menus were added yet because those interactions are not needed until later feature steps.
 - The primitive set is small, which keeps the design system easy to change before many modules depend on it.
 - Form validation UI remains basic. Zod and React Hook Form patterns should be standardized when feature forms become more complex.
+
+## Family Module
+
+The Family module is available at `/family` and is the first domain module in the authenticated app.
+
+### Features Implemented
+
+- Automatically creates an `AppProfile` for the current Supabase user when needed.
+- Automatically creates the user's single `Family` workspace when needed.
+- Allows editing family name, description, avatar URL, and timezone.
+- Allows adding family members with name, nickname, role, gender, birth date, color theme, and avatar URL.
+- Lists existing family members with role, nickname, birth date state, and color marker.
+- Enables Family in desktop and mobile navigation.
+
+### Implementation Details
+
+- Prisma client singleton lives in `src/lib/prisma/client.ts`.
+- Family queries live in `src/features/family/queries.ts`.
+- Family server actions live in `src/features/family/actions.ts`.
+- Zod validation schemas live in `src/features/family/validation.ts`.
+- Family form options live in `src/features/family/options.ts`.
+- Family UI lives in `src/features/family` and the route entry is `src/app/(dashboard)/family/page.tsx`.
+
+### Design Decisions
+
+- The logged-in Supabase user owns one application profile and one family workspace.
+- Family members are internal app records and do not have Supabase Auth accounts.
+- Server actions always resolve the owned family from the current session instead of trusting posted ownership IDs.
+- Family timezone is editable because daily checklist boundaries depend on local household date.
+- Member deletion is intentionally deferred because later historical checklist and report records need a clear archive/delete policy.
+
+### Validation
+
+- Family name and member name require at least 2 characters.
+- Avatar fields accept empty values or valid URLs.
+- Role, gender, and color theme are restricted to known values.
+- Birth date accepts an empty value or a valid date.
+
+### Edge Cases
+
+- If the profile exists but the family does not, the Family page creates the missing family.
+- If a user signs in before an app profile exists, the Family page creates it from Supabase Auth data.
+- If an unauthenticated user visits `/family`, middleware and the dashboard layout redirect to `/login`.
+
+### Future Improvements
+
+- Member edit flow.
+- Member archive/delete flow with historical data protection.
+- Avatar upload through Supabase Storage instead of raw avatar URLs.
+- Richer empty states and onboarding prompts after the Layout and Dashboard modules mature.
 
 ## Getting Started
 
