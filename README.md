@@ -29,8 +29,16 @@ Completed steps:
 8. Family module
 9. Goals module
 10. Activities module
+11. Daily Checklist
+12. Dashboard
+13. Calendar
+14. Reports
+15. Settings
+16. Deployment
+17. Testing
+18. Performance optimization
 
-Next step after approval: **11. Daily Checklist**
+All planned incremental build steps are complete for the current baseline.
 
 ## Folder Architecture
 
@@ -642,6 +650,169 @@ The Activities module is available at `/activities` and defines measurable actio
 - Drag-and-drop sorting.
 - Type-specific form controls with richer units.
 - Goal detail pages that manage activities in context.
+
+## Daily Checklist
+
+The Daily Checklist is available at `/checklist` and records per-member progress for a selected calendar date.
+
+### Features Implemented
+
+- Selects the checklist date through a date input and `?date=` URL state.
+- Shows every family member.
+- Groups active goal activities under each member.
+- Saves each member/activity record independently.
+- Supports record statuses: pending, completed, skipped, and missed.
+- Stores typed values for checkbox, number, duration, distance, text, and rating activities.
+- Upserts `DailyEntry` records by member and date.
+- Upserts `ActivityRecord` records by daily entry and activity.
+- Recalculates member daily completion rate after every save.
+- Enables Checklist in desktop and mobile navigation.
+
+### Implementation Details
+
+- Date utilities live in `src/features/checklist/date.ts`.
+- Checklist queries live in `src/features/checklist/queries.ts`.
+- Checklist server actions live in `src/features/checklist/actions.ts`.
+- Zod validation lives in `src/features/checklist/validation.ts`.
+- Date picker UI lives in `src/features/checklist/checklist-date-form.tsx`.
+- Per-activity record UI lives in `src/features/checklist/activity-record-form.tsx`.
+- Per-member checklist grouping lives in `src/features/checklist/member-checklist.tsx`.
+- Route entry is `src/app/(dashboard)/checklist/page.tsx`.
+
+### Completion Calculation
+
+- Completion is calculated per member per date.
+- Only required activities from active goals count toward the percentage.
+- Completed required activities increase completion.
+- Pending, skipped, and missed required activities do not count as completed.
+- Optional activities can be recorded but do not reduce completion.
+
+### Design Decisions
+
+- Each activity row saves independently. This keeps progress recording resilient and avoids losing a whole page of changes if one row has invalid data.
+- The URL owns the selected date so refreshes and future calendar links can open a specific day.
+- The checklist uses normalized `DailyEntry` and `ActivityRecord` rows so Dashboard, Calendar, and Reports can query durable history later.
+- Checkbox completion stores a boolean derived from completed status.
+
+### Edge Cases
+
+- If there are no family members, the page asks the user to add members first.
+- If there are no active activities, the page asks the user to create goals and activities first.
+- If a posted member or activity does not belong to the current family, the server action rejects it.
+- If a date is invalid or missing, the page falls back to today's date.
+
+### Future Improvements
+
+- Bulk save for a member's whole day.
+- Faster inline controls for checkbox activities.
+- Undo toast after recording changes.
+- Family timezone-aware date helpers instead of UTC date parsing.
+- Stronger history behavior when activities are archived later.
+
+## Dashboard
+
+The Dashboard is available at `/dashboard` and now uses real family, goal, activity, and checklist data.
+
+### Features Implemented
+
+- Today's average family completion.
+- Active goal count.
+- Activity and required activity totals.
+- Current goal summary.
+- Family ranking by today's completion.
+- Recent checklist activity.
+- Loading skeleton for dashboard route transitions.
+
+### Trade-offs
+
+- Dashboard aggregates are calculated directly with Prisma queries for now. Summary tables can be added later when data volume grows.
+- Streak calculations are deferred because they need a careful date/timezone model.
+
+## Calendar
+
+The Calendar is available at `/calendar` and displays monthly daily progress summaries.
+
+### Features Implemented
+
+- Month grid for the selected date's month.
+- Color indicators: green completed, yellow partial, red missed, gray no record.
+- Selected date details with member completion and activity statuses.
+- Date navigation through `?date=` links.
+
+### Trade-offs
+
+- Monthly view is implemented first because it gives the highest value for historical scanning. Weekly and daily dedicated views can be layered on top later.
+
+## Reports
+
+Reports are available at `/reports` and summarize historical checklist data.
+
+### Features Implemented
+
+- Average family completion.
+- Days tracked.
+- Completed and missed record totals.
+- Most active member.
+- Member report.
+- Goal report.
+
+### Trade-offs
+
+- Reports use simple visual bars and cards instead of a charting dependency. A chart library can be added after requirements stabilize.
+
+## Settings
+
+Settings are available at `/settings`.
+
+### Features Implemented
+
+- Account summary from the app profile.
+- Family profile settings reuse.
+- Session sign out.
+
+### Trade-offs
+
+- Destructive account deletion is not implemented yet because it needs policy, confirmations, auditability, and Supabase Auth cleanup decisions.
+
+## Deployment
+
+Deployment configuration and notes live in `vercel.json` and `docs/deployment.md`.
+
+### Design Decisions
+
+- Vercel remains the deployment target.
+- Supabase redirect URLs and Prisma generation are documented as explicit deployment requirements.
+- RLS policies are called out as required before real production use.
+
+## Testing
+
+Testing notes live in `docs/testing.md`.
+
+### Implemented
+
+- Added Vitest script.
+- Added a first unit test for checklist date helpers.
+
+### Trade-offs
+
+- Broad automated coverage is intentionally staged. Dependency installation is still required before tests can run locally.
+
+## Performance Optimization
+
+Performance notes live in `docs/performance.md`.
+
+### Current Optimizations
+
+- Server Components by default.
+- Client Components only for interactive forms/navigation.
+- Family-scoped Prisma queries.
+- Serialized Decimal values before client-facing props.
+
+### Future Optimizations
+
+- Pagination for long histories.
+- Summary tables or materialized views for reports.
+- Query-plan-based indexes after real Supabase usage data.
 
 ## Getting Started
 

@@ -19,14 +19,14 @@ const primaryNavigation = [
   { label: "Family", href: "/family", icon: UsersRound, enabled: true },
   { label: "Goals", href: "/goals", icon: Target, enabled: true },
   { label: "Activities", href: "/activities", icon: ListChecks, enabled: true },
-  { label: "Checklist", href: "/checklist", icon: CheckSquare, enabled: false },
-  { label: "Calendar", href: "/calendar", icon: CalendarDays, enabled: false },
-  { label: "Reports", href: "/reports", icon: BarChart3, enabled: false },
-  { label: "Settings", href: "/settings", icon: Settings, enabled: false },
+  { label: "Checklist", href: "/checklist", icon: CheckSquare, enabled: true },
+  { label: "Calendar", href: "/calendar", icon: CalendarDays, enabled: true },
+  { label: "Reports", href: "/reports", icon: BarChart3, enabled: true },
+  { label: "Settings", href: "/settings", icon: Settings, enabled: true },
 ];
 
 const mobileNavigation = primaryNavigation.filter((item) =>
-  ["Dashboard", "Family", "Goals", "Activities", "Checklist"].includes(item.label),
+  ["Dashboard", "Checklist", "Calendar", "Reports", "Settings"].includes(item.label),
 );
 
 function NavigationItem({
