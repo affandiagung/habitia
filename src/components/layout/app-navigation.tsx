@@ -17,7 +17,7 @@ import {
 const primaryNavigation = [
   { label: "Dashboard", href: "/dashboard", icon: Home, enabled: true },
   { label: "Family", href: "/family", icon: UsersRound, enabled: true },
-  { label: "Goals", href: "/goals", icon: Target, enabled: false },
+  { label: "Goals", href: "/goals", icon: Target, enabled: true },
   { label: "Activities", href: "/activities", icon: ListChecks, enabled: false },
   { label: "Checklist", href: "/checklist", icon: CheckSquare, enabled: false },
   { label: "Calendar", href: "/calendar", icon: CalendarDays, enabled: false },

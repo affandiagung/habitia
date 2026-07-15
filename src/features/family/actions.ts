@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { FamilyMemberRole, Gender } from "@prisma/client";
 import { prisma } from "@/lib/prisma/client";
 import { getOwnedFamilyId } from "./queries";
 import { addFamilyMemberSchema, familyProfileSchema } from "./validation";
@@ -80,8 +81,8 @@ export async function addFamilyMemberAction(
       name: parsed.data.name,
       nickname: parsed.data.nickname,
       avatarUrl: parsed.data.avatarUrl,
-      role: parsed.data.role,
-      gender: parsed.data.gender,
+      role: parsed.data.role as FamilyMemberRole,
+      gender: parsed.data.gender as Gender | null,
       birthDate: parsed.data.birthDate,
       colorTheme: parsed.data.colorTheme,
     },

@@ -27,8 +27,9 @@ Completed steps:
 6. Layout
 7. UI Components
 8. Family module
+9. Goals module
 
-Next step after approval: **9. Goals module**
+Next step after approval: **10. Activities module**
 
 ## Folder Architecture
 
@@ -534,6 +535,57 @@ The Family module is available at `/family` and is the first domain module in th
 - Member archive/delete flow with historical data protection.
 - Avatar upload through Supabase Storage instead of raw avatar URLs.
 - Richer empty states and onboarding prompts after the Layout and Dashboard modules mature.
+
+## Goals Module
+
+The Goals module is available at `/goals` and creates the family-level goal containers that activities will belong to.
+
+### Features Implemented
+
+- Lists goals owned by the current family.
+- Creates custom goals.
+- Creates template-based goals from editable preset values.
+- Stores title, description, icon label, color, category, type, status, start date, and optional end date.
+- Enables Goals in desktop and mobile navigation.
+- Protects `/goals` through middleware and the authenticated app layout.
+
+### Implementation Details
+
+- Goal queries live in `src/features/goals/queries.ts`.
+- Goal server actions live in `src/features/goals/actions.ts`.
+- Zod validation lives in `src/features/goals/validation.ts`.
+- Template and option values live in `src/features/goals/options.ts`.
+- Goal creation UI lives in `src/features/goals/create-goal-form.tsx`.
+- Goal list UI lives in `src/features/goals/goal-list.tsx`.
+- Route entry is `src/app/(dashboard)/goals/page.tsx`.
+
+### Design Decisions
+
+- Goals belong to the family, not individual members, matching the initial product brief.
+- Templates are code-level presets for now. Selecting one fills editable fields and saves a normal user-owned goal.
+- Created goals start as `ACTIVE` because this form represents intentional creation, not draft saving.
+- Activities are intentionally not created in this step. The next module owns activity types, targets, units, and validation.
+- Server actions resolve the current family from the authenticated session and never trust posted family IDs.
+
+### Validation
+
+- Goal title requires at least 2 characters.
+- Category, type, and color are restricted to known values.
+- Start date is required.
+- End date is optional but must not be before start date.
+
+### Edge Cases
+
+- If a user reaches `/goals` before a Family exists, the shared family ownership helper creates the missing profile/family records.
+- Goals can exist without activities until Step 10 is implemented.
+- Template-based goals are stored as normal goals, so future edits do not depend on the original preset.
+
+### Future Improvements
+
+- Goal edit flow.
+- Goal pause/archive flow.
+- Database-seeded templates and template activities.
+- Goal detail page with attached activities and progress analytics.
 
 ## Getting Started
 
