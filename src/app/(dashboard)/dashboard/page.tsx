@@ -1,4 +1,5 @@
 import { signOutAction } from "@/features/auth/actions";
+import { Button, Card, CardContent } from "@/components/ui";
 
 export default function DashboardPage() {
   return (
@@ -14,25 +15,21 @@ export default function DashboardPage() {
           </p>
         </div>
         <form action={signOutAction}>
-          <button
-            className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium transition hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
-            type="submit"
-          >
+          <Button type="submit" variant="outline">
             Sign out
-          </button>
+          </Button>
         </form>
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
         {["Today's progress", "Active goals", "Family completion"].map((title) => (
-          <div
-            className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
-            key={title}
-          >
-            <p className="text-sm font-medium text-neutral-500">{title}</p>
-            <p className="mt-3 text-2xl font-semibold text-neutral-950 dark:text-neutral-50">--</p>
-            <p className="mt-2 text-sm text-neutral-500">Coming in a later step</p>
-          </div>
+          <Card key={title}>
+            <CardContent className="p-5">
+              <p className="text-sm font-medium text-neutral-500">{title}</p>
+              <p className="mt-3 text-2xl font-semibold text-neutral-950 dark:text-neutral-50">--</p>
+              <p className="mt-2 text-sm text-neutral-500">Coming in a later step</p>
+            </CardContent>
+          </Card>
         ))}
       </section>
     </div>

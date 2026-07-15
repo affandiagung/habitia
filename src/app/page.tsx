@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buttonClasses } from "@/components/ui";
 
 export default function Home() {
   return (
@@ -15,10 +16,10 @@ export default function Home() {
           approval before each feature.
         </p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <Link className="rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-medium text-white dark:bg-neutral-50 dark:text-neutral-950" href="/login">
+          <Link className={buttonClasses({ className: "sm:w-auto" })} href="/login">
             Sign in
           </Link>
-          <Link className="rounded-lg border border-neutral-300 px-4 py-2.5 text-sm font-medium dark:border-neutral-700" href="/register">
+          <Link className={buttonClasses({ className: "sm:w-auto", variant: "outline" })} href="/register">
             Create account
           </Link>
         </div>

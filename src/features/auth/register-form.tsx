@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
+import { Button, Input, Label } from "@/components/ui";
 import { signUpAction } from "./actions";
 import { AuthFormStatus } from "./auth-form-status";
 
@@ -12,24 +13,22 @@ export function RegisterForm() {
     <form action={formAction} className="space-y-4">
       <AuthFormStatus error={state.error} message={state.message} />
       <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="displayName">
+        <Label htmlFor="displayName">
           Name
-        </label>
-        <input
+        </Label>
+        <Input
           autoComplete="name"
-          className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:focus:border-neutral-100"
           id="displayName"
           name="displayName"
           type="text"
         />
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="email">
+        <Label htmlFor="email">
           Email
-        </label>
-        <input
+        </Label>
+        <Input
           autoComplete="email"
-          className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:focus:border-neutral-100"
           id="email"
           name="email"
           required
@@ -37,12 +36,11 @@ export function RegisterForm() {
         />
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="password">
+        <Label htmlFor="password">
           Password
-        </label>
-        <input
+        </Label>
+        <Input
           autoComplete="new-password"
-          className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-neutral-950 dark:border-neutral-700 dark:bg-neutral-950 dark:focus:border-neutral-100"
           id="password"
           minLength={8}
           name="password"
@@ -50,13 +48,9 @@ export function RegisterForm() {
           type="password"
         />
       </div>
-      <button
-        className="w-full rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-neutral-50 dark:text-neutral-950 dark:hover:bg-neutral-200"
-        disabled={isPending}
-        type="submit"
-      >
+      <Button className="w-full" disabled={isPending} type="submit">
         {isPending ? "Creating account..." : "Create account"}
-      </button>
+      </Button>
       <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
         Already have an account?{" "}
         <Link href="/login" className="font-medium text-neutral-950 dark:text-neutral-100">

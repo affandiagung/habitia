@@ -25,8 +25,9 @@ Completed steps:
 4. Prisma schema
 5. Authentication
 6. Layout
+7. UI Components
 
-Next step after approval: **7. UI Components**
+Next step after approval: **8. Family module**
 
 ## Folder Architecture
 
@@ -453,6 +454,35 @@ The authenticated product area uses a shared app shell around the `(dashboard)` 
 - Navigation is visible before all modules exist, but disabled states make the product direction clear without creating unfinished pages.
 - The layout uses local Tailwind styles for now. Reusable button, card, input, dialog, and navigation primitives will be standardized in the UI Components step.
 - A drawer is not implemented yet because the current module list fits the sidebar/mobile-bottom pattern. A drawer can be added when Settings or secondary actions need more room.
+
+## UI Components
+
+The first UI component layer is a small shadcn-inspired primitive set in `src/components/ui`.
+
+### Components Added
+
+- `Button` and `buttonClasses` for actions and link-style buttons.
+- `Input` for text, email, and password fields.
+- `Label` for accessible form labeling.
+- `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, and `CardFooter` for framed content.
+- `Badge` for compact status indicators.
+- `Alert` for success, default, and danger messages.
+- `Skeleton` for loading placeholders.
+- `cn` utility in `src/utils/cn.ts` using `clsx` and `tailwind-merge`.
+
+### Design Decisions
+
+- Components are intentionally low-level primitives, not product-specific widgets.
+- Styling uses neutral surfaces, 8px radius, soft borders, and accessible focus rings.
+- Components support dark mode through Tailwind dark variants.
+- `buttonClasses` exists so links can look like buttons without invalid button/link nesting.
+- Existing auth forms and dashboard placeholders now use the shared primitives.
+
+### Trade-offs
+
+- No Radix-based dialogs, dropdowns, tabs, or menus were added yet because those interactions are not needed until later feature steps.
+- The primitive set is small, which keeps the design system easy to change before many modules depend on it.
+- Form validation UI remains basic. Zod and React Hook Form patterns should be standardized when feature forms become more complex.
 
 ## Getting Started
 
