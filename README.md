@@ -28,8 +28,9 @@ Completed steps:
 7. UI Components
 8. Family module
 9. Goals module
+10. Activities module
 
-Next step after approval: **10. Activities module**
+Next step after approval: **11. Daily Checklist**
 
 ## Folder Architecture
 
@@ -586,6 +587,61 @@ The Goals module is available at `/goals` and creates the family-level goal cont
 - Goal pause/archive flow.
 - Database-seeded templates and template activities.
 - Goal detail page with attached activities and progress analytics.
+
+## Activities Module
+
+The Activities module is available at `/activities` and defines measurable actions inside goals.
+
+### Features Implemented
+
+- Lists activities grouped by goal.
+- Creates activities under an existing family-owned goal.
+- Supports activity types: checkbox, number, duration, distance, text, and rating.
+- Stores title, description, type, target value, target unit, sort order, and required/optional completion rule.
+- Enables Activities in desktop and mobile navigation.
+- Protects `/activities` through middleware and the authenticated app layout.
+
+### Implementation Details
+
+- Activity queries live in `src/features/activities/queries.ts`.
+- Activity server actions live in `src/features/activities/actions.ts`.
+- Zod validation lives in `src/features/activities/validation.ts`.
+- Activity type options live in `src/features/activities/options.ts`.
+- Activity creation UI lives in `src/features/activities/create-activity-form.tsx`.
+- Activity list UI lives in `src/features/activities/activity-list.tsx`.
+- Route entry is `src/app/(dashboard)/activities/page.tsx`.
+
+### Design Decisions
+
+- Activities must belong to a goal. The page shows a helpful empty state if no goals exist yet.
+- Server actions verify that the selected goal belongs to the current authenticated family before creating an activity.
+- Numeric target validation is required for number, duration, distance, and rating activity types.
+- Checkbox and text activities can omit numeric targets.
+- Rating targets are capped at 5 to match the product brief.
+- Required/optional is explicit because optional activities should not unfairly reduce completion later.
+
+### Validation
+
+- Activity title requires at least 2 characters.
+- Goal ID must be a valid UUID and owned by the current family.
+- Type is restricted to supported activity types.
+- Numeric activity targets must be greater than zero.
+- Rating target cannot be greater than 5.
+- Sort order must be zero or greater.
+
+### Edge Cases
+
+- If a user has no goals, the create form is replaced by a message asking them to create a goal first.
+- If a posted goal ID does not belong to the current family, the server action rejects it.
+- Activities can exist before daily records. Daily completion state starts in the Daily Checklist step.
+
+### Future Improvements
+
+- Activity edit flow.
+- Activity archive flow instead of destructive deletion.
+- Drag-and-drop sorting.
+- Type-specific form controls with richer units.
+- Goal detail pages that manage activities in context.
 
 ## Getting Started
 
