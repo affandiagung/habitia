@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-12">
@@ -12,6 +14,14 @@ export default function Home() {
           Project setup is ready. The product will be built incrementally with
           approval before each feature.
         </p>
+        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <Link className="rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-medium text-white dark:bg-neutral-50 dark:text-neutral-950" href="/login">
+            Sign in
+          </Link>
+          <Link className="rounded-lg border border-neutral-300 px-4 py-2.5 text-sm font-medium dark:border-neutral-700" href="/register">
+            Create account
+          </Link>
+        </div>
       </section>
     </main>
   );

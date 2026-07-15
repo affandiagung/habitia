@@ -1,0 +1,239 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum FamilyMemberRole {
+  FATHER
+  MOTHER
+  SON
+  DAUGHTER
+  GRANDPARENT
+  OTHER
+}
+
+enum GoalType {
+  CUSTOM
+  TEMPLATE
+}
+
+enum GoalStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum GoalCategory {
+  HEALTH
+  RELIGION
+  LEARNING
+  FINANCE
+  LIFESTYLE
+  CUSTOM
+}
+
+enum ActivityType {
+  CHECKBOX
+  NUMBER
+  DURATION
+  DISTANCE
+  TEXT
+  RATING
+}
+
+enum ActivityRecordStatus {
+  PENDING
+  COMPLETED
+  SKIPPED
+  MISSED
+}
+
+model AppProfile {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authUserId  String   @unique @map("auth_user_id") @db.Uuid
+  email       String
+  displayName String?  @map("display_name")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  family Family?
+
+  @@map("app_profiles")
+}
+
+model Family {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileId   String   @unique @map("profile_id") @db.Uuid
+  name        String
+  description String?
+  avatarUrl   String?  @map("avatar_url")
+  timezone    String   @default("UTC")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  profile      AppProfile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  members      FamilyMember[]
+  goals        Goal[]
+  dailyEntries DailyEntry[]
+
+  @@index([profileId])
+  @@map("families")
+}
+
+model FamilyMember {
+  id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  familyId   String            @map("family_id") @db.Uuid
+  name       String
+  nickname   String?
+  avatarUrl  String?           @map("avatar_url")
+  gender     Gender?
+  birthDate  DateTime?         @map("birth_date") @db.Date
+  role       FamilyMemberRole  @default(OTHER)
+  colorTheme String            @map("color_theme")
+  createdAt  DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  family       Family       @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  dailyEntries DailyEntry[]
+
+  @@index([familyId])
+  @@map("family_members")
+}
+
+model Goal {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  familyId    String       @map("family_id") @db.Uuid
+  title       String
+  description String?
+  icon        String?
+  color       String
+  category    GoalCategory @default(CUSTOM)
+  type        GoalType     @default(CUSTOM)
+  status      GoalStatus   @default(DRAFT)
+  startDate   DateTime     @map("start_date") @db.Date
+  endDate     DateTime?    @map("end_date") @db.Date
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  family     Family     @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  activities Activity[]
+
+  @@index([familyId])
+  @@index([familyId, status])
+  @@index([familyId, startDate])
+  @@map("goals")
+}
+
+model Activity {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  goalId      String       @map("goal_id") @db.Uuid
+  title       String
+  description String?
+  type        ActivityType
+  targetValue Decimal?     @map("target_value") @db.Decimal(12, 2)
+  targetUnit  String?      @map("target_unit")
+  sortOrder   Int          @default(0) @map("sort_order")
+  isRequired  Boolean      @default(true) @map("is_required")
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  goal    Goal             @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  records ActivityRecord[]
+
+  @@index([goalId])
+  @@index([goalId, sortOrder])
+  @@map("activities")
+}
+
+model DailyEntry {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  familyId       String   @map("family_id") @db.Uuid
+  memberId       String   @map("member_id") @db.Uuid
+  entryDate      DateTime @map("entry_date") @db.Date
+  completionRate Decimal  @default(0) @map("completion_rate") @db.Decimal(5, 2)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  family  Family           @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  member  FamilyMember     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  records ActivityRecord[]
+
+  @@unique([memberId, entryDate])
+  @@index([familyId, entryDate])
+  @@index([memberId, entryDate])
+  @@map("daily_entries")
+}
+
+model ActivityRecord {
+  id            String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dailyEntryId  String               @map("daily_entry_id") @db.Uuid
+  activityId    String               @map("activity_id") @db.Uuid
+  status        ActivityRecordStatus @default(PENDING)
+  booleanValue  Boolean?             @map("boolean_value")
+  numberValue   Decimal?             @map("number_value") @db.Decimal(12, 2)
+  textValue     String?              @map("text_value")
+  ratingValue   Int?                 @map("rating_value")
+  completedAt   DateTime?            @map("completed_at") @db.Timestamptz(6)
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  dailyEntry DailyEntry @relation(fields: [dailyEntryId], references: [id], onDelete: Cascade)
+  activity   Activity   @relation(fields: [activityId], references: [id], onDelete: Restrict)
+
+  @@unique([dailyEntryId, activityId])
+  @@index([activityId])
+  @@map("activity_records")
+}
+
+model GoalTemplate {
+  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title               String
+  description         String?
+  icon                String?
+  color               String
+  category            GoalCategory @default(CUSTOM)
+  defaultDurationDays Int?         @map("default_duration_days")
+  isActive            Boolean      @default(true) @map("is_active")
+  createdAt           DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  activities GoalTemplateActivity[]
+
+  @@index([category])
+  @@index([isActive])
+  @@map("goal_templates")
+}
+
+model GoalTemplateActivity {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  templateId  String       @map("template_id") @db.Uuid
+  title       String
+  description String?
+  type        ActivityType
+  targetValue Decimal?     @map("target_value") @db.Decimal(12, 2)
+  targetUnit  String?      @map("target_unit")
+  sortOrder   Int          @default(0) @map("sort_order")
+  isRequired  Boolean      @default(true) @map("is_required")
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  template GoalTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@index([templateId, sortOrder])
+  @@map("goal_template_activities")
+}
