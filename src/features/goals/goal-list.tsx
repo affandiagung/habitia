@@ -1,10 +1,12 @@
 import { Badge, Card, CardContent } from "@/components/ui";
+import { GoalActions } from "./goal-actions";
 import { goalColors } from "./options";
 
 type Goal = {
   id: string;
   title: string;
   description: string | null;
+  icon: string | null;
   color: string;
   category: string;
   type: string;
@@ -56,6 +58,13 @@ export function GoalList({ goals }: { goals: Goal[] }) {
               <p className="mt-3 text-xs text-neutral-400">
                 {goal.startDate.toLocaleDateString()} - {goal.endDate ? goal.endDate.toLocaleDateString() : "No end date"}
               </p>
+              <GoalActions
+                goal={{
+                  ...goal,
+                  startDate: goal.startDate.toISOString(),
+                  endDate: goal.endDate?.toISOString() ?? null,
+                }}
+              />
             </div>
           </CardContent>
         </Card>

@@ -7,7 +7,7 @@ type AppShellProps = {
 
 export function AppShell({ children, email }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50">
+    <div className="min-h-screen bg-sky-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50">
       <div className="lg:flex">
         <AppSidebar email={email} />
         <div className="min-w-0 flex-1">

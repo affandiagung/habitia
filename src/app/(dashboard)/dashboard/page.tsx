@@ -15,7 +15,7 @@ export default async function DashboardPage() {
             {overview.family.name} progress overview
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-600 dark:text-neutral-400">
-            Track today's completion, current goals, family ranking, and recent checklist activity.
+            Track today&apos;s completion, current goals, family ranking, and recent checklist activity.
           </p>
         </div>
         <form action={signOutAction}>

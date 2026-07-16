@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { ActivityRecordStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma/client";
 import { getOwnedFamilyId } from "@/features/family/queries";
+import { recalculateDailyEntryCompletion } from "./progress";
 import { recordActivitySchema } from "./validation";
 
 type ChecklistActionState = {
@@ -42,20 +43,24 @@ export async function recordActivityAction(
     return { error: getFirstValidationError(parsed.error) };
   }
 
-  const [member, activity, requiredActivities] = await Promise.all([
+  const [member, activity] = await Promise.all([
     prisma.familyMember.findFirst({ where: { id: parsed.data.memberId, familyId }, select: { id: true } }),
     prisma.activity.findFirst({
       where: { id: parsed.data.activityId, goal: { familyId } },
-      select: { id: true, type: true },
-    }),
-    prisma.activity.findMany({
-      where: { isRequired: true, goal: { familyId, status: "ACTIVE" } },
-      select: { id: true },
+      select: { id: true, type: true, goal: { select: { startDate: true, endDate: true, status: true } } },
     }),
   ]);
 
   if (!member || !activity) {
     return { error: "Selected checklist item was not found." };
+  }
+
+  if (
+    activity.goal.status !== "ACTIVE" ||
+    parsed.data.entryDate < activity.goal.startDate ||
+    (activity.goal.endDate && parsed.data.entryDate > activity.goal.endDate)
+  ) {
+    return { error: "This activity is not scheduled for the selected date." };
   }
 
   const booleanValue = activity.type === "CHECKBOX" ? parsed.data.status === "COMPLETED" : parsed.data.booleanValue;
@@ -94,19 +99,7 @@ export async function recordActivityAction(
     },
   });
 
-  const completedRequiredCount = await prisma.activityRecord.count({
-    where: {
-      dailyEntryId: dailyEntry.id,
-      status: "COMPLETED",
-      activityId: { in: requiredActivities.map((item) => item.id) },
-    },
-  });
-  const completionRate = requiredActivities.length === 0 ? 0 : (completedRequiredCount / requiredActivities.length) * 100;
-
-  await prisma.dailyEntry.update({
-    where: { id: dailyEntry.id },
-    data: { completionRate: new Prisma.Decimal(completionRate.toFixed(2)) },
-  });
+  await recalculateDailyEntryCompletion(dailyEntry.id, familyId);
 
   revalidatePath(`/checklist?date=${entryDateValue}`);
   revalidatePath("/dashboard");

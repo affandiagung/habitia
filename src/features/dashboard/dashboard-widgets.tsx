@@ -8,7 +8,7 @@ function formatStatus(value: string) {
 
 export function DashboardWidgets({ overview }: { overview: DashboardOverview }) {
   const stats = [
-    { label: "Today's progress", value: `${overview.stats.todayCompletion}%`, helper: "Average family completion" },
+    { label: "Today progress", value: `${overview.stats.todayCompletion}%`, helper: "Average family completion" },
     { label: "Active goals", value: overview.stats.activeGoalCount, helper: `${overview.stats.activityCount} activities total` },
     { label: "Required activities", value: overview.stats.requiredActivityCount, helper: `${overview.stats.completedRecordCount} completed today` },
   ];
@@ -50,7 +50,7 @@ export function DashboardWidgets({ overview }: { overview: DashboardOverview }) 
         <Card>
           <CardHeader>
             <CardTitle>Family ranking</CardTitle>
-            <CardDescription>Today's completion by member.</CardDescription>
+            <CardDescription>Completion today by member.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {overview.members.map((member) => (

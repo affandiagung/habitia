@@ -11,7 +11,11 @@ export async function getChecklistOverview(entryDate: string) {
     include: {
       members: { orderBy: { createdAt: "asc" } },
       goals: {
-        where: { status: "ACTIVE" },
+        where: {
+          status: "ACTIVE",
+          startDate: { lte: databaseDate },
+          OR: [{ endDate: null }, { endDate: { gte: databaseDate } }],
+        },
         orderBy: [{ startDate: "desc" }, { createdAt: "desc" }],
         include: {
           activities: {

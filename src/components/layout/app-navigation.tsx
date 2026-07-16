@@ -43,8 +43,8 @@ function NavigationItem({
     ? "flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-xs font-medium"
     : "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium";
   const stateClass = isActive
-    ? "bg-neutral-950 text-white dark:bg-neutral-50 dark:text-neutral-950"
-    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-neutral-50";
+    ? "bg-sky-600 text-white dark:bg-sky-500 dark:text-white"
+    : "text-neutral-600 hover:bg-sky-50 hover:text-sky-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-neutral-50";
   const disabledClass = "cursor-not-allowed text-neutral-400 opacity-60 dark:text-neutral-600";
 
   if (!item.enabled) {
@@ -70,9 +70,9 @@ function NavigationItem({
 
 export function AppSidebar({ email }: { email?: string }) {
   return (
-    <aside className="hidden min-h-screen w-72 shrink-0 border-r border-neutral-200 bg-white px-4 py-5 dark:border-neutral-800 dark:bg-neutral-950 lg:flex lg:flex-col">
+    <aside className="hidden min-h-screen w-72 shrink-0 border-r border-sky-100 bg-white px-4 py-5 dark:border-neutral-800 dark:bg-neutral-950 lg:flex lg:flex-col">
       <div className="flex items-center gap-3 px-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-neutral-950 text-white dark:bg-neutral-50 dark:text-neutral-950">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-600 text-white dark:bg-sky-500 dark:text-white">
           <CircleDot aria-hidden="true" className="h-5 w-5" />
         </div>
         <div>
@@ -92,10 +92,10 @@ export function AppSidebar({ email }: { email?: string }) {
 
 export function MobileTopBar({ email }: { email?: string }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/95 lg:hidden">
+    <header className="sticky top-0 z-30 border-b border-sky-100 bg-white/95 px-4 py-3 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/95 lg:hidden">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-950 text-white dark:bg-neutral-50 dark:text-neutral-950">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-600 text-white dark:bg-sky-500 dark:text-white">
             <CircleDot aria-hidden="true" className="h-5 w-5" />
           </div>
           <div className="min-w-0">
@@ -112,7 +112,7 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-neutral-200 bg-white/95 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/95 lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-sky-100 bg-white/95 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/95 lg:hidden"
     >
       {mobileNavigation.map((item) => (
         <NavigationItem compact item={item} key={item.label} />
