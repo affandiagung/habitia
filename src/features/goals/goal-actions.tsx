@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { Alert, Button, Input, Label } from "@/components/ui";
 import { deleteGoalAction, updateGoalAction } from "./actions";
 import { goalCategories, goalColors } from "./options";
@@ -21,6 +22,16 @@ type GoalActionsProps = {
 
 function toDateInputValue(date: string | null) {
   return date ? date.slice(0, 10) : "";
+}
+
+function DeleteGoalButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button disabled={pending} size="sm" type="submit" variant="danger">
+      {pending ? "Deleting..." : "Delete goal"}
+    </Button>
+  );
 }
 
 export function GoalActions({ goal }: GoalActionsProps) {
@@ -72,9 +83,21 @@ export function GoalActions({ goal }: GoalActionsProps) {
           <Button disabled={isPending} size="sm" type="submit">{isPending ? "Saving..." : "Save changes"}</Button>
         </div>
       </form>
-      <form action={deleteGoalAction} className="mt-3">
+      <form
+        action={deleteGoalAction}
+        className="mt-3"
+        onSubmit={(event) => {
+          const confirmed = window.confirm(
+            `Are you sure you want to delete "${goal.title}"? Related activities and checklist records will also be removed.`,
+          );
+
+          if (!confirmed) {
+            event.preventDefault();
+          }
+        }}
+      >
         <input name="goalId" type="hidden" value={goal.id} />
-        <Button size="sm" type="submit" variant="danger">Delete goal</Button>
+        <DeleteGoalButton />
       </form>
     </details>
   );
