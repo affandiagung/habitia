@@ -64,10 +64,8 @@ export async function createActivityAction(
     },
   });
 
-  const [members, dates] = await Promise.all([
-    prisma.familyMember.findMany({ where: { familyId }, select: { id: true } }),
-    Promise.resolve(enumerateGoalDates(ownedGoal.startDate, ownedGoal.endDate)),
-  ]);
+  const members = await prisma.familyMember.findMany({ where: { familyId }, select: { id: true } });
+  const dates = enumerateGoalDates(ownedGoal.startDate, ownedGoal.endDate);
 
   for (const member of members) {
     for (const entryDate of dates) {

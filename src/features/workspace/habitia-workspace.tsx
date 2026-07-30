@@ -17,7 +17,13 @@ import { ReportView } from "@/features/reports/report-view";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import type { WorkspaceView } from "@/components/layout/app-navigation";
-import { getCalendarSnapshotAction, getChecklistSnapshotAction } from "./actions";
+import {
+  getActivitiesSnapshotAction,
+  getCalendarSnapshotAction,
+  getChecklistSnapshotAction,
+  getGoalsSnapshotAction,
+  getReportsSnapshotAction,
+} from "./actions";
 import type { HabitiaWorkspaceData } from "./queries";
 
 type HabitiaWorkspaceProps = {
@@ -35,19 +41,68 @@ function PageHeader({ eyebrow, title, description }: { eyebrow: string; title: s
   );
 }
 
+function ViewLoading({ label }: { label: string }) {
+  return (
+    <Card>
+      <CardContent className="p-6 text-sm text-neutral-500">Loading {label}...</CardContent>
+    </Card>
+  );
+}
+
 export function HabitiaWorkspace({ initialData, user }: HabitiaWorkspaceProps) {
   const [activeView, setActiveView] = useState<WorkspaceView>("dashboard");
-  const [checklistOverride, setChecklistOverride] = useState<HabitiaWorkspaceData["checklist"] | null>(null);
-  const [calendarOverride, setCalendarOverride] = useState<HabitiaWorkspaceData["calendar"] | null>(null);
+  const [goalsOverride, setGoalsOverride] = useState<Awaited<ReturnType<typeof getGoalsSnapshotAction>> | null>(null);
+  const [activitiesOverride, setActivitiesOverride] = useState<Awaited<ReturnType<typeof getActivitiesSnapshotAction>> | null>(null);
+  const [checklistOverride, setChecklistOverride] = useState<Awaited<ReturnType<typeof getChecklistSnapshotAction>> | null>(null);
+  const [calendarOverride, setCalendarOverride] = useState<Awaited<ReturnType<typeof getCalendarSnapshotAction>> | null>(null);
+  const [reportsOverride, setReportsOverride] = useState<Awaited<ReturnType<typeof getReportsSnapshotAction>> | null>(null);
   const [selectedChecklistMemberIdOverride, setSelectedChecklistMemberIdOverride] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   const data = {
     ...initialData,
+    activities: activitiesOverride ?? initialData.activities,
     calendar: calendarOverride ?? initialData.calendar,
     checklist: checklistOverride ?? initialData.checklist,
+    goals: goalsOverride ?? initialData.goals,
+    reports: reportsOverride ?? initialData.reports,
   };
-  const selectedChecklistMemberId = selectedChecklistMemberIdOverride ?? data.checklist.family.selectedMemberId;
+  const selectedChecklistMemberId = selectedChecklistMemberIdOverride ?? data.checklist?.family.selectedMemberId ?? null;
+
+  function loadViewData(view: WorkspaceView) {
+    if (view === "goals" && !data.goals) {
+      startTransition(() => {
+        void getGoalsSnapshotAction().then(setGoalsOverride);
+      });
+    }
+
+    if (view === "activities" && !data.activities) {
+      startTransition(() => {
+        void getActivitiesSnapshotAction().then(setActivitiesOverride);
+      });
+    }
+
+    if (view === "checklist" && !data.checklist) {
+      startTransition(() => {
+        void getChecklistSnapshotAction(new Date().toISOString().slice(0, 10)).then((checklist) => {
+          setChecklistOverride(checklist);
+          setSelectedChecklistMemberIdOverride(checklist.family.selectedMemberId);
+        });
+      });
+    }
+
+    if (view === "calendar" && !data.calendar) {
+      startTransition(() => {
+        void getCalendarSnapshotAction(new Date().toISOString().slice(0, 10)).then(setCalendarOverride);
+      });
+    }
+
+    if (view === "reports" && !data.reports) {
+      startTransition(() => {
+        void getReportsSnapshotAction().then(setReportsOverride);
+      });
+    }
+  }
 
   function updateChecklistDate(nextDate: string) {
     startTransition(() => {
@@ -68,16 +123,17 @@ export function HabitiaWorkspace({ initialData, user }: HabitiaWorkspaceProps) {
 
   function handleViewChange(view: WorkspaceView) {
     setActiveView(view);
+    loadViewData(view);
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
   const selectedChecklistMembers = useMemo(
-    () => data.checklist.family.members.filter((member) => member.id === selectedChecklistMemberId),
-    [data.checklist.family.members, selectedChecklistMemberId],
+    () => data.checklist?.family.members.filter((member) => member.id === selectedChecklistMemberId) ?? [],
+    [data.checklist?.family.members, selectedChecklistMemberId],
   );
-  const checklistActivityCount = data.checklist.family.goals.reduce((total, goal) => total + goal.activities.length, 0);
-  const goalOptions = data.activities.goals.map((goal) => ({ id: goal.id, title: goal.title }));
-  const activityCount = data.activities.goals.reduce((total, goal) => total + goal.activities.length, 0);
+  const checklistActivityCount = data.checklist?.family.goals.reduce((total, goal) => total + goal.activities.length, 0) ?? 0;
+  const goalOptions = data.activities?.goals.map((goal) => ({ id: goal.id, title: goal.title })) ?? [];
+  const activityCount = data.activities?.goals.reduce((total, goal) => total + goal.activities.length, 0) ?? 0;
 
   return (
     <AppShell activeView={activeView} email={user.email ?? undefined} onViewChange={handleViewChange}>
@@ -152,9 +208,9 @@ export function HabitiaWorkspace({ initialData, user }: HabitiaWorkspaceProps) {
               <section className="space-y-3">
                 <div>
                   <h2 className="text-lg font-semibold tracking-normal text-neutral-950 dark:text-neutral-50">Current goals</h2>
-                  <p className="mt-1 text-sm text-neutral-500">{data.goals.goals.length} goal(s) created.</p>
+                  <p className="mt-1 text-sm text-neutral-500">{data.goals?.goals.length ?? 0} goal(s) created.</p>
                 </div>
-                <GoalList goals={data.goals.goals} />
+                {data.goals ? <GoalList goals={data.goals.goals} /> : <ViewLoading label="goals" />}
               </section>
               <Card>
                 <CardHeader>
@@ -180,9 +236,9 @@ export function HabitiaWorkspace({ initialData, user }: HabitiaWorkspaceProps) {
               <section className="space-y-3">
                 <div>
                   <h2 className="text-lg font-semibold tracking-normal text-neutral-950 dark:text-neutral-50">Activity library</h2>
-                  <p className="mt-1 text-sm text-neutral-500">{activityCount} activity item(s) across {data.activities.goals.length} goal(s).</p>
+                  <p className="mt-1 text-sm text-neutral-500">{activityCount} activity item(s) across {data.activities?.goals.length ?? 0} goal(s).</p>
                 </div>
-                <ActivityList goals={data.activities.goals} />
+                {data.activities ? <ActivityList goals={data.activities.goals} /> : <ViewLoading label="activities" />}
               </section>
               <Card>
                 <CardHeader>
@@ -190,7 +246,7 @@ export function HabitiaWorkspace({ initialData, user }: HabitiaWorkspaceProps) {
                   <CardDescription>Attach an activity to a goal and choose how it should be measured.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <CreateActivityForm goals={goalOptions} />
+                  {data.activities ? <CreateActivityForm goals={goalOptions} /> : <ViewLoading label="activity options" />}
                 </CardContent>
               </Card>
             </div>
@@ -210,7 +266,7 @@ export function HabitiaWorkspace({ initialData, user }: HabitiaWorkspaceProps) {
               <Card className="w-full lg:w-80">
                 <CardContent className="p-4">
                   <ChecklistDateForm
-                    date={data.checklist.family.date ?? new Date().toISOString().slice(0, 10)}
+                    date={data.checklist?.family.date ?? new Date().toISOString().slice(0, 10)}
                     memberId={selectedChecklistMemberId}
                     onDateChange={updateChecklistDate}
                   />
@@ -221,10 +277,10 @@ export function HabitiaWorkspace({ initialData, user }: HabitiaWorkspaceProps) {
               <CardHeader>
                 <CardTitle>Checklist summary</CardTitle>
                 <CardDescription>
-                  {data.checklist.family.members.length} member(s), {data.checklist.family.goals.length} active goal(s), {checklistActivityCount} activity item(s).
+                  {data.checklist?.family.members.length ?? 0} member(s), {data.checklist?.family.goals.length ?? 0} active goal(s), {checklistActivityCount} activity item(s).
                 </CardDescription>
               </CardHeader>
-              {data.checklist.family.members.length > 0 ? (
+              {data.checklist?.family.members.length ? (
                 <CardContent className="flex flex-wrap gap-2">
                   {data.checklist.family.members.map((member) => (
                     <Button
@@ -240,12 +296,16 @@ export function HabitiaWorkspace({ initialData, user }: HabitiaWorkspaceProps) {
                 </CardContent>
               ) : null}
             </Card>
-            <MemberChecklist
-              entries={data.checklist.family.dailyEntries}
-              entryDate={data.checklist.family.date ?? new Date().toISOString().slice(0, 10)}
-              goals={data.checklist.family.goals}
-              members={selectedChecklistMembers}
-            />
+            {data.checklist ? (
+              <MemberChecklist
+                entries={data.checklist.family.dailyEntries}
+                entryDate={data.checklist.family.date ?? new Date().toISOString().slice(0, 10)}
+                goals={data.checklist.family.goals}
+                members={selectedChecklistMembers}
+              />
+            ) : (
+              <ViewLoading label="checklist" />
+            )}
           </div>
         ) : null}
 
@@ -256,7 +316,7 @@ export function HabitiaWorkspace({ initialData, user }: HabitiaWorkspaceProps) {
               eyebrow="Calendar"
               title="Historical progress calendar"
             />
-            <CalendarView overview={data.calendar} onDateSelect={updateCalendarDate} />
+            {data.calendar ? <CalendarView overview={data.calendar} onDateSelect={updateCalendarDate} /> : <ViewLoading label="calendar" />}
           </div>
         ) : null}
 
@@ -267,7 +327,7 @@ export function HabitiaWorkspace({ initialData, user }: HabitiaWorkspaceProps) {
               eyebrow="Reports"
               title="Family analytics"
             />
-            <ReportView overview={data.reports} />
+            {data.reports ? <ReportView overview={data.reports} /> : <ViewLoading label="reports" />}
           </div>
         ) : null}
 

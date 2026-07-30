@@ -138,9 +138,9 @@ export async function deleteGoalAction(formData: FormData) {
     prisma.goal.delete({ where: { id: goal.id } }),
   ]);
 
-  await Promise.all(
-    affectedEntries.map((entry) => recalculateDailyEntryCompletion(entry.dailyEntryId, familyId)),
-  );
+  for (const entry of affectedEntries) {
+    await recalculateDailyEntryCompletion(entry.dailyEntryId, familyId);
+  }
 
   revalidateTag("checklist");
   revalidateTag("dashboard");

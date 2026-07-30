@@ -12,49 +12,47 @@ export async function getDashboardOverview() {
 
 const getCachedDashboardOverview = unstable_cache(async (familyId: string, today: string) => {
   const todayDate = toDatabaseDate(today);
-  const [family, goals, activityCount, requiredActivityCount, todayEntries, recentRecords] = await Promise.all([
-    prisma.family.findUniqueOrThrow({
-      where: { id: familyId },
-      select: {
-        name: true,
-        members: { orderBy: { createdAt: "asc" }, select: { id: true, name: true } },
-      },
-    }),
-    prisma.goal.findMany({
-      where: { familyId },
-      orderBy: [{ status: "asc" }, { startDate: "desc" }],
-      select: {
-        id: true,
-        title: true,
-        status: true,
-        category: true,
-        _count: { select: { activities: true } },
-      },
-    }),
-    prisma.activity.count({ where: { goal: { familyId } } }),
-    prisma.activity.count({ where: { goal: { familyId }, isRequired: true } }),
-    prisma.dailyEntry.findMany({
-      where: { familyId, entryDate: todayDate },
-      select: {
-        memberId: true,
-        completionRate: true,
-        records: { where: { status: "COMPLETED" }, select: { id: true } },
-      },
-      orderBy: { createdAt: "asc" },
-    }),
-    prisma.activityRecord.findMany({
-      where: { dailyEntry: { familyId } },
-      select: {
-        id: true,
-        status: true,
-        updatedAt: true,
-        activity: { select: { title: true } },
-        dailyEntry: { select: { member: { select: { name: true } } } },
-      },
-      orderBy: { updatedAt: "desc" },
-      take: 6,
-    }),
-  ]);
+  const family = await prisma.family.findUniqueOrThrow({
+    where: { id: familyId },
+    select: {
+      name: true,
+      members: { orderBy: { createdAt: "asc" }, select: { id: true, name: true } },
+    },
+  });
+  const goals = await prisma.goal.findMany({
+    where: { familyId },
+    orderBy: [{ status: "asc" }, { startDate: "desc" }],
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      category: true,
+      _count: { select: { activities: true } },
+    },
+  });
+  const activityCount = await prisma.activity.count({ where: { goal: { familyId } } });
+  const requiredActivityCount = await prisma.activity.count({ where: { goal: { familyId }, isRequired: true } });
+  const todayEntries = await prisma.dailyEntry.findMany({
+    where: { familyId, entryDate: todayDate },
+    select: {
+      memberId: true,
+      completionRate: true,
+      records: { where: { status: "COMPLETED" }, select: { id: true } },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+  const recentRecords = await prisma.activityRecord.findMany({
+    where: { dailyEntry: { familyId } },
+    select: {
+      id: true,
+      status: true,
+      updatedAt: true,
+      activity: { select: { title: true } },
+      dailyEntry: { select: { member: { select: { name: true } } } },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 6,
+  });
 
   const activeGoals = goals.filter((goal) => goal.status === "ACTIVE");
   const completedToday = todayEntries.reduce(

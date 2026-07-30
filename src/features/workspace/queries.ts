@@ -1,11 +1,5 @@
-import { getActivitiesOverview } from "@/features/activities/queries";
-import { toDateInputValue } from "@/features/checklist/date";
-import { getChecklistOverview } from "@/features/checklist/queries";
 import { getDashboardOverview } from "@/features/dashboard/queries";
 import { getOrCreateFamilyOverview } from "@/features/family/queries";
-import { getGoalsOverview } from "@/features/goals/queries";
-import { getCalendarOverview } from "@/features/calendar/queries";
-import { getReportsOverview } from "@/features/reports/queries";
 
 function serializeDate(value: Date | null) {
   return value?.toISOString() ?? null;
@@ -16,16 +10,8 @@ function serializeRequiredDate(value: Date) {
 }
 
 export async function getWorkspaceOverview() {
-  const today = toDateInputValue();
   const familyOverview = await getOrCreateFamilyOverview();
-  const [dashboard, goalsOverview, activities, checklist, calendar, reports] = await Promise.all([
-    getDashboardOverview(),
-    getGoalsOverview(),
-    getActivitiesOverview(),
-    getChecklistOverview(today),
-    getCalendarOverview(today),
-    getReportsOverview(),
-  ]);
+  const dashboard = await getDashboardOverview();
 
   const family = {
     ...familyOverview.family,
@@ -39,35 +25,14 @@ export async function getWorkspaceOverview() {
     })),
   };
 
-  const goals = goalsOverview.goals.map((goal) => ({
-    ...goal,
-    startDate: serializeRequiredDate(goal.startDate),
-    endDate: serializeDate(goal.endDate),
-    createdAt: serializeDate(goal.createdAt),
-    updatedAt: serializeDate(goal.updatedAt),
-  }));
-
-  const activityGoals = activities.goals.map((goal) => ({
-    ...goal,
-    startDate: serializeRequiredDate(goal.startDate),
-    endDate: serializeDate(goal.endDate),
-    createdAt: serializeDate(goal.createdAt),
-    updatedAt: serializeDate(goal.updatedAt),
-    activities: goal.activities.map((activity) => ({
-      ...activity,
-      createdAt: serializeDate(activity.createdAt),
-      updatedAt: serializeDate(activity.updatedAt),
-    })),
-  }));
-
   return {
     dashboard,
     family,
-    goals: { goals },
-    activities: { ...activities, goals: activityGoals },
-    checklist,
-    calendar,
-    reports,
+    goals: null,
+    activities: null,
+    checklist: null,
+    calendar: null,
+    reports: null,
     settings: {
       profile: {
         email: familyOverview.profile.email,
@@ -84,3 +49,5 @@ export async function getWorkspaceOverview() {
 }
 
 export type HabitiaWorkspaceData = Awaited<ReturnType<typeof getWorkspaceOverview>>;
+
+export { serializeDate, serializeRequiredDate };

@@ -9,6 +9,11 @@ function getMonthBounds(dateValue: string) {
   return { start, end };
 }
 
+function addMonths(date: Date, months: number) {
+  const next = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + months, 1));
+  return dateKey(next);
+}
+
 function dateKey(date: Date) {
   return date.toISOString().slice(0, 10);
 }
@@ -25,18 +30,16 @@ export async function getCalendarOverview(date?: string) {
   const { start, end } = getMonthBounds(selectedDate);
   const selectedDatabaseDate = toDatabaseDate(selectedDate);
 
-  const [entries, selectedEntries] = await Promise.all([
-    prisma.dailyEntry.findMany({
-      where: { familyId, entryDate: { gte: start, lte: end } },
-      include: { member: true },
-      orderBy: { entryDate: "asc" },
-    }),
-    prisma.dailyEntry.findMany({
-      where: { familyId, entryDate: selectedDatabaseDate },
-      include: { member: true, records: { include: { activity: true } } },
-      orderBy: { createdAt: "asc" },
-    }),
-  ]);
+  const entries = await prisma.dailyEntry.findMany({
+    where: { familyId, entryDate: { gte: start, lte: end } },
+    include: { member: true },
+    orderBy: { entryDate: "asc" },
+  });
+  const selectedEntries = await prisma.dailyEntry.findMany({
+    where: { familyId, entryDate: selectedDatabaseDate },
+    include: { member: true, records: { include: { activity: true } } },
+    orderBy: { createdAt: "asc" },
+  });
 
   const daysInMonth = end.getUTCDate();
   const daySummaries = Array.from({ length: daysInMonth }, (_, index) => {
@@ -57,6 +60,10 @@ export async function getCalendarOverview(date?: string) {
 
   return {
     selectedDate,
+    monthStartDate: dateKey(start),
+    previousMonthDate: addMonths(start, -1),
+    nextMonthDate: addMonths(start, 1),
+    firstWeekday: start.getUTCDay(),
     monthLabel: start.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" }),
     daySummaries,
     selectedEntries: selectedEntries.map((entry) => ({

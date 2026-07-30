@@ -4,15 +4,13 @@ import { getOwnedFamilyId } from "@/features/family/queries";
 export async function getReportsOverview() {
   const familyId = await getOwnedFamilyId();
 
-  const [members, goals, entries, records] = await Promise.all([
-    prisma.familyMember.findMany({ where: { familyId }, orderBy: { createdAt: "asc" } }),
-    prisma.goal.findMany({ where: { familyId }, include: { activities: true }, orderBy: { createdAt: "desc" } }),
-    prisma.dailyEntry.findMany({ where: { familyId }, include: { member: true }, orderBy: { entryDate: "desc" } }),
-    prisma.activityRecord.findMany({
-      where: { dailyEntry: { familyId } },
-      include: { activity: { include: { goal: true } }, dailyEntry: { include: { member: true } } },
-    }),
-  ]);
+  const members = await prisma.familyMember.findMany({ where: { familyId }, orderBy: { createdAt: "asc" } });
+  const goals = await prisma.goal.findMany({ where: { familyId }, include: { activities: true }, orderBy: { createdAt: "desc" } });
+  const entries = await prisma.dailyEntry.findMany({ where: { familyId }, include: { member: true }, orderBy: { entryDate: "desc" } });
+  const records = await prisma.activityRecord.findMany({
+    where: { dailyEntry: { familyId } },
+    include: { activity: { include: { goal: true } }, dailyEntry: { include: { member: true } } },
+  });
 
   const averageCompletion = entries.length === 0
     ? 0

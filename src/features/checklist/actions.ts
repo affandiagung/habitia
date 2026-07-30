@@ -43,13 +43,11 @@ export async function recordActivityAction(
     return { error: getFirstValidationError(parsed.error) };
   }
 
-  const [member, activity] = await Promise.all([
-    prisma.familyMember.findFirst({ where: { id: parsed.data.memberId, familyId }, select: { id: true } }),
-    prisma.activity.findFirst({
-      where: { id: parsed.data.activityId, goal: { familyId } },
-      select: { id: true, type: true, goal: { select: { startDate: true, endDate: true, status: true } } },
-    }),
-  ]);
+  const member = await prisma.familyMember.findFirst({ where: { id: parsed.data.memberId, familyId }, select: { id: true } });
+  const activity = await prisma.activity.findFirst({
+    where: { id: parsed.data.activityId, goal: { familyId } },
+    select: { id: true, type: true, goal: { select: { startDate: true, endDate: true, status: true } } },
+  });
 
   if (!member || !activity) {
     return { error: "Selected checklist item was not found." };
