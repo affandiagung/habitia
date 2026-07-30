@@ -11,8 +11,8 @@ type Goal = {
   category: string;
   type: string;
   status: string;
-  startDate: Date;
-  endDate: Date | null;
+  startDate: Date | string;
+  endDate: Date | string | null;
   activities: { id: string }[];
 };
 
@@ -22,6 +22,10 @@ function getColorClass(color: string) {
 
 function formatValue(value: string) {
   return value.toLowerCase().replaceAll("_", " ");
+}
+
+function formatDate(value: Date | string) {
+  return new Date(value).toLocaleDateString();
 }
 
 export function GoalList({ goals }: { goals: Goal[] }) {
@@ -56,13 +60,13 @@ export function GoalList({ goals }: { goals: Goal[] }) {
                 <Badge variant="muted">{goal.activities.length} activities</Badge>
               </div>
               <p className="mt-3 text-xs text-neutral-400">
-                {goal.startDate.toLocaleDateString()} - {goal.endDate ? goal.endDate.toLocaleDateString() : "No end date"}
+                {formatDate(goal.startDate)} - {goal.endDate ? formatDate(goal.endDate) : "No end date"}
               </p>
               <GoalActions
                 goal={{
                   ...goal,
-                  startDate: goal.startDate.toISOString(),
-                  endDate: goal.endDate?.toISOString() ?? null,
+                  startDate: new Date(goal.startDate).toISOString(),
+                  endDate: goal.endDate ? new Date(goal.endDate).toISOString() : null,
                 }}
               />
             </div>

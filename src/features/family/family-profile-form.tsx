@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Alert, Button, Input, Label } from "@/components/ui";
 import { updateFamilyAction } from "./actions";
 import { timezoneOptions } from "./options";
@@ -15,7 +16,14 @@ type FamilyProfileFormProps = {
 };
 
 export function FamilyProfileForm({ family }: FamilyProfileFormProps) {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(updateFamilyAction, {});
+
+  useEffect(() => {
+    if (state.message) {
+      router.refresh();
+    }
+  }, [router, state.message]);
 
   return (
     <form action={formAction} className="space-y-4">

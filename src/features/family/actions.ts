@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { FamilyMemberRole, Gender } from "@prisma/client";
 import { prisma } from "@/lib/prisma/client";
 import { getOwnedFamilyId } from "./queries";
@@ -45,7 +45,9 @@ export async function updateFamilyAction(
     },
   });
 
+  revalidateTag("dashboard");
   revalidatePath("/family");
+  revalidatePath("/dashboard");
   return { message: "Family profile updated." };
 }
 
@@ -88,6 +90,10 @@ export async function addFamilyMemberAction(
     },
   });
 
+  revalidateTag("checklist");
+  revalidateTag("dashboard");
   revalidatePath("/family");
+  revalidatePath("/checklist");
+  revalidatePath("/dashboard");
   return { message: "Family member added." };
 }

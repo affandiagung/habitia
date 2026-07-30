@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Alert, Badge, Button, Input, Label } from "@/components/ui";
 import { createActivityAction } from "./actions";
 import { activityTypes, defaultUnitsByType } from "./options";
@@ -11,10 +12,17 @@ type GoalOption = {
 };
 
 export function CreateActivityForm({ goals }: { goals: GoalOption[] }) {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(createActivityAction, {});
   const [type, setType] = useState<(typeof activityTypes)[number]["value"]>("CHECKBOX");
   const selectedType = useMemo(() => activityTypes.find((item) => item.value === type), [type]);
   const needsTarget = ["NUMBER", "DURATION", "DISTANCE", "RATING"].includes(type);
+
+  useEffect(() => {
+    if (state.message) {
+      router.refresh();
+    }
+  }, [router, state.message]);
 
   if (goals.length === 0) {
     return (

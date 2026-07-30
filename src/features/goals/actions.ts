@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { GoalCategory, GoalType } from "@prisma/client";
 import { prisma } from "@/lib/prisma/client";
 import { recalculateDailyEntryCompletion } from "@/features/checklist/progress";
@@ -56,7 +56,9 @@ export async function createGoalAction(
     },
   });
 
+  revalidateTag("dashboard");
   revalidatePath("/goals");
+  revalidatePath("/dashboard");
   return { message: "Goal created." };
 }
 
@@ -101,8 +103,11 @@ export async function updateGoalAction(
     },
   });
 
+  revalidateTag("checklist");
+  revalidateTag("dashboard");
   revalidatePath("/goals");
   revalidatePath("/checklist");
+  revalidatePath("/dashboard");
   return { message: "Goal updated." };
 }
 
@@ -137,6 +142,8 @@ export async function deleteGoalAction(formData: FormData) {
     affectedEntries.map((entry) => recalculateDailyEntryCompletion(entry.dailyEntryId, familyId)),
   );
 
+  revalidateTag("checklist");
+  revalidateTag("dashboard");
   revalidatePath("/goals");
   revalidatePath("/activities");
   revalidatePath("/checklist");

@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Alert, Button, Input, Label } from "@/components/ui";
 import { recordActivityAction } from "./actions";
 
@@ -40,7 +41,14 @@ function valueLabel(type: string) {
 }
 
 export function ActivityRecordForm({ activity, memberId, entryDate, record }: ActivityRecordFormProps) {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(recordActivityAction, {});
+
+  useEffect(() => {
+    if (state.message) {
+      router.refresh();
+    }
+  }, [router, state.message]);
 
   return (
     <form action={formAction} className="space-y-3 rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">

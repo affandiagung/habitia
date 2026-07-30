@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import { Alert, Button, Input, Label } from "@/components/ui";
 import { deleteGoalAction, updateGoalAction } from "./actions";
 import { goalCategories, goalColors } from "./options";
@@ -35,7 +36,14 @@ function DeleteGoalButton() {
 }
 
 export function GoalActions({ goal }: GoalActionsProps) {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(updateGoalAction, {});
+
+  useEffect(() => {
+    if (state.message) {
+      router.refresh();
+    }
+  }, [router, state.message]);
 
   return (
     <details className="mt-4 rounded-lg border border-sky-100 bg-sky-50/60 p-3 dark:border-sky-900/60 dark:bg-sky-950/20">

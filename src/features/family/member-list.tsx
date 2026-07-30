@@ -7,7 +7,7 @@ type Member = {
   nickname: string | null;
   role: string;
   gender: string | null;
-  birthDate: Date | null;
+  birthDate: Date | string | null;
   colorTheme: string;
 };
 
@@ -17,6 +17,10 @@ function getColorClass(colorTheme: string) {
 
 function formatRole(role: string) {
   return role.toLowerCase().replaceAll("_", " ");
+}
+
+function formatBirthDate(value: Date | string | null) {
+  return value ? `Born ${new Date(value).toLocaleDateString()}` : "Birth date not set";
 }
 
 export function MemberList({ members }: { members: Member[] }) {
@@ -44,7 +48,7 @@ export function MemberList({ members }: { members: Member[] }) {
               </div>
               <p className="mt-1 text-sm text-neutral-500">{member.nickname || "No nickname"}</p>
               <p className="mt-2 text-xs text-neutral-400">
-                {member.birthDate ? `Born ${member.birthDate.toLocaleDateString()}` : "Birth date not set"}
+                {formatBirthDate(member.birthDate)}
               </p>
             </div>
           </CardContent>

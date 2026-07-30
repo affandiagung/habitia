@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Alert, Badge, Button, Input, Label } from "@/components/ui";
 import { createGoalAction } from "./actions";
 import { goalCategories, goalColors, goalTemplates } from "./options";
@@ -16,10 +17,17 @@ function today() {
 }
 
 export function CreateGoalForm() {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(createGoalAction, {});
   const [templateIndex, setTemplateIndex] = useState("");
   const selectedTemplate = templateIndex === "" ? null : goalTemplates[Number(templateIndex)];
   const startDate = today();
+
+  useEffect(() => {
+    if (state.message) {
+      router.refresh();
+    }
+  }, [router, state.message]);
 
   return (
     <form action={formAction} className="space-y-4">

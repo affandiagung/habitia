@@ -1,4 +1,5 @@
-import Link from "next/link";
+"use client";
+
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 
 type CalendarOverview = Awaited<ReturnType<typeof import("./queries").getCalendarOverview>>;
@@ -10,7 +11,7 @@ const statusClass: Record<string, string> = {
   empty: "border-neutral-200 bg-white text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400",
 };
 
-export function CalendarView({ overview }: { overview: CalendarOverview }) {
+export function CalendarView({ overview, onDateSelect }: { overview: CalendarOverview; onDateSelect?: (date: string) => void }) {
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
       <Card>
@@ -21,14 +22,15 @@ export function CalendarView({ overview }: { overview: CalendarOverview }) {
         <CardContent>
           <div className="grid grid-cols-7 gap-2">
             {overview.daySummaries.map((day) => (
-              <Link
+              <button
                 className={`min-h-20 rounded-lg border p-2 text-sm transition hover:scale-[1.01] ${statusClass[day.status]}`}
-                href={`/calendar?date=${day.date}`}
                 key={day.date}
+                onClick={() => onDateSelect?.(day.date)}
+                type="button"
               >
                 <span className="font-semibold">{day.dayNumber}</span>
                 <p className="mt-3 text-xs">{day.average}%</p>
-              </Link>
+              </button>
             ))}
           </div>
         </CardContent>

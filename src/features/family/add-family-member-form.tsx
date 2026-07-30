@@ -1,12 +1,20 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Alert, Button, Input, Label } from "@/components/ui";
 import { addFamilyMemberAction } from "./actions";
 import { familyMemberRoles, genderOptions, memberColorOptions } from "./options";
 
 export function AddFamilyMemberForm() {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(addFamilyMemberAction, {});
+
+  useEffect(() => {
+    if (state.message) {
+      router.refresh();
+    }
+  }, [router, state.message]);
 
   return (
     <form action={formAction} className="space-y-4">

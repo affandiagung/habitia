@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { ActivityRecordStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma/client";
 import { getOwnedFamilyId } from "@/features/family/queries";
@@ -101,6 +101,8 @@ export async function recordActivityAction(
 
   await recalculateDailyEntryCompletion(dailyEntry.id, familyId);
 
+  revalidateTag("checklist");
+  revalidateTag("dashboard");
   revalidatePath(`/checklist?date=${entryDateValue}`);
   revalidatePath("/dashboard");
   return { message: "Progress saved." };

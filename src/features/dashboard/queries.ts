@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma/client";
 import { getOwnedFamilyId } from "@/features/family/queries";
 import { toDatabaseDate, toDateInputValue } from "@/features/checklist/date";
@@ -6,25 +7,49 @@ export async function getDashboardOverview() {
   const familyId = await getOwnedFamilyId();
   const today = toDatabaseDate(toDateInputValue());
 
-  const [family, goals, activities, todayEntries, recentRecords] = await Promise.all([
+  return getCachedDashboardOverview(familyId, today);
+}
+
+const getCachedDashboardOverview = unstable_cache(async (familyId: string, today: string) => {
+  const [family, goals, activityCount, requiredActivityCount, todayEntries, recentRecords] = await Promise.all([
     prisma.family.findUniqueOrThrow({
       where: { id: familyId },
-      include: { members: { orderBy: { createdAt: "asc" } } },
+      select: {
+        name: true,
+        members: { orderBy: { createdAt: "asc" }, select: { id: true, name: true } },
+      },
     }),
     prisma.goal.findMany({
       where: { familyId },
       orderBy: [{ status: "asc" }, { startDate: "desc" }],
-      include: { activities: { select: { id: true, isRequired: true } } },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        category: true,
+        _count: { select: { activities: true } },
+      },
     }),
-    prisma.activity.findMany({ where: { goal: { familyId } }, select: { id: true, isRequired: true } }),
+    prisma.activity.count({ where: { goal: { familyId } } }),
+    prisma.activity.count({ where: { goal: { familyId }, isRequired: true } }),
     prisma.dailyEntry.findMany({
       where: { familyId, entryDate: today },
-      include: { member: true, records: true },
+      select: {
+        memberId: true,
+        completionRate: true,
+        records: { where: { status: "COMPLETED" }, select: { id: true } },
+      },
       orderBy: { createdAt: "asc" },
     }),
     prisma.activityRecord.findMany({
       where: { dailyEntry: { familyId } },
-      include: { activity: true, dailyEntry: { include: { member: true } } },
+      select: {
+        id: true,
+        status: true,
+        updatedAt: true,
+        activity: { select: { title: true } },
+        dailyEntry: { select: { member: { select: { name: true } } } },
+      },
       orderBy: { updatedAt: "desc" },
       take: 6,
     }),
@@ -43,8 +68,8 @@ export async function getDashboardOverview() {
     stats: {
       todayCompletion: Math.round(familyCompletion),
       activeGoalCount: activeGoals.length,
-      activityCount: activities.length,
-      requiredActivityCount: activities.filter((activity) => activity.isRequired).length,
+      activityCount,
+      requiredActivityCount,
       completedRecordCount: completedRecords.length,
     },
     goals: goals.slice(0, 5).map((goal) => ({
@@ -52,7 +77,7 @@ export async function getDashboardOverview() {
       title: goal.title,
       status: goal.status,
       category: goal.category,
-      activityCount: goal.activities.length,
+      activityCount: goal._count.activities,
     })),
     members: family.members.map((member) => {
       const entry = todayEntries.find((item) => item.memberId === member.id);
@@ -70,4 +95,4 @@ export async function getDashboardOverview() {
       updatedAt: record.updatedAt.toISOString(),
     })),
   };
-}
+}, ["dashboard-overview-v2"], { revalidate: 60, tags: ["dashboard"] });

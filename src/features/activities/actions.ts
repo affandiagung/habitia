@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { ActivityType, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma/client";
 import { getOwnedFamilyId } from "@/features/family/queries";
@@ -89,7 +89,11 @@ export async function createActivityAction(
     }
   }
 
+  revalidateTag("checklist");
+  revalidateTag("dashboard");
   revalidatePath("/activities");
   revalidatePath("/goals");
+  revalidatePath("/checklist");
+  revalidatePath("/dashboard");
   return { message: "Activity created." };
 }
