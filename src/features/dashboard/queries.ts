@@ -5,12 +5,13 @@ import { toDatabaseDate, toDateInputValue } from "@/features/checklist/date";
 
 export async function getDashboardOverview() {
   const familyId = await getOwnedFamilyId();
-  const today = toDatabaseDate(toDateInputValue());
+  const today = toDateInputValue();
 
   return getCachedDashboardOverview(familyId, today);
 }
 
 const getCachedDashboardOverview = unstable_cache(async (familyId: string, today: string) => {
+  const todayDate = toDatabaseDate(today);
   const [family, goals, activityCount, requiredActivityCount, todayEntries, recentRecords] = await Promise.all([
     prisma.family.findUniqueOrThrow({
       where: { id: familyId },
@@ -33,7 +34,7 @@ const getCachedDashboardOverview = unstable_cache(async (familyId: string, today
     prisma.activity.count({ where: { goal: { familyId } } }),
     prisma.activity.count({ where: { goal: { familyId }, isRequired: true } }),
     prisma.dailyEntry.findMany({
-      where: { familyId, entryDate: today },
+      where: { familyId, entryDate: todayDate },
       select: {
         memberId: true,
         completionRate: true,
@@ -61,7 +62,7 @@ const getCachedDashboardOverview = unstable_cache(async (familyId: string, today
     0,
   );
   const familyCompletion = todayEntries.length === 0 ? 0 : completedToday / todayEntries.length;
-  const completedRecords = todayEntries.flatMap((entry) => entry.records).filter((record) => record.status === "COMPLETED");
+  const completedRecordCount = todayEntries.reduce((total, entry) => total + entry.records.length, 0);
 
   return {
     family: { name: family.name, memberCount: family.members.length },
@@ -70,7 +71,7 @@ const getCachedDashboardOverview = unstable_cache(async (familyId: string, today
       activeGoalCount: activeGoals.length,
       activityCount,
       requiredActivityCount,
-      completedRecordCount: completedRecords.length,
+      completedRecordCount,
     },
     goals: goals.slice(0, 5).map((goal) => ({
       id: goal.id,
