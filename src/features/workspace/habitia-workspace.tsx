@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { signOutAction } from "@/features/auth/actions";
 import { ActivityList } from "@/features/activities/activity-list";
 import { CreateActivityForm } from "@/features/activities/create-activity-form";
@@ -37,20 +37,23 @@ function PageHeader({ eyebrow, title, description }: { eyebrow: string; title: s
 
 export function HabitiaWorkspace({ initialData, user }: HabitiaWorkspaceProps) {
   const [activeView, setActiveView] = useState<WorkspaceView>("dashboard");
-  const [data, setData] = useState(initialData);
-  const [selectedChecklistMemberId, setSelectedChecklistMemberId] = useState(initialData.checklist.family.selectedMemberId);
+  const [checklistOverride, setChecklistOverride] = useState<HabitiaWorkspaceData["checklist"] | null>(null);
+  const [calendarOverride, setCalendarOverride] = useState<HabitiaWorkspaceData["calendar"] | null>(null);
+  const [selectedChecklistMemberIdOverride, setSelectedChecklistMemberIdOverride] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  useEffect(() => {
-    setData(initialData);
-    setSelectedChecklistMemberId(initialData.checklist.family.selectedMemberId);
-  }, [initialData]);
+  const data = {
+    ...initialData,
+    calendar: calendarOverride ?? initialData.calendar,
+    checklist: checklistOverride ?? initialData.checklist,
+  };
+  const selectedChecklistMemberId = selectedChecklistMemberIdOverride ?? data.checklist.family.selectedMemberId;
 
   function updateChecklistDate(nextDate: string) {
     startTransition(() => {
       void getChecklistSnapshotAction(nextDate).then((checklist) => {
-        setData((current) => ({ ...current, checklist }));
-        setSelectedChecklistMemberId(checklist.family.selectedMemberId);
+        setChecklistOverride(checklist);
+        setSelectedChecklistMemberIdOverride(checklist.family.selectedMemberId);
       });
     });
   }
@@ -58,7 +61,7 @@ export function HabitiaWorkspace({ initialData, user }: HabitiaWorkspaceProps) {
   function updateCalendarDate(nextDate: string) {
     startTransition(() => {
       void getCalendarSnapshotAction(nextDate).then((calendar) => {
-        setData((current) => ({ ...current, calendar }));
+        setCalendarOverride(calendar);
       });
     });
   }
@@ -226,7 +229,7 @@ export function HabitiaWorkspace({ initialData, user }: HabitiaWorkspaceProps) {
                   {data.checklist.family.members.map((member) => (
                     <Button
                       key={member.id}
-                      onClick={() => setSelectedChecklistMemberId(member.id)}
+                      onClick={() => setSelectedChecklistMemberIdOverride(member.id)}
                       size="sm"
                       type="button"
                       variant={member.id === selectedChecklistMemberId ? "primary" : "outline"}
